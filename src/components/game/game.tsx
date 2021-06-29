@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import './game.css';
-import Board from './board';
+import Board from '../board/board';
+import { ISquare, History } from '../../interface';
 
-const calculateWinner = squares => {
+const calculateWinner = (squares: ISquare[]) => {
   const lines = [
     [0, 1, 2],
     [3, 4, 5],
@@ -20,47 +21,37 @@ const calculateWinner = squares => {
   return null;
 };
 
-const Game = props => {
-  const init = {
-    history: [{
-      squares: Array(9).fill(null),
-    }],
-    stepNumber: 0,
-    xIsNext: true,
-    isSort: false,
-  };
+const Game = () => {
+  const [history, setHistory] = useState<History[]>([{squares: Array(9).fill(null)}]);
+  const [stepNumber, setStepNumber] = useState<number>(0);
+  const [xIsNext, setXIsNext] = useState<boolean>(true);
+  const [isSort, setIsSort] = useState<boolean>(false);
 
-  const [state, setState] = useState(init);
-
-  const handleClick = i => {
-    const history = state.history.slice(0, state.stepNumber + 1);
-    const current = history[history.length - 1];
+  const handleClick = (i: number) => {
+    const _history = history.slice(0, stepNumber + 1);
+    const current = _history[_history.length - 1];
     let squares = current.squares.slice();
     if (calculateWinner(squares) || squares[i]) return;
-    squares[i] = state.xIsNext ? 'X' : 'O';
+    squares[i] = xIsNext ? 'X' : 'O';
 
-    setState({
-      ...state,
-      history: history.concat([{
+    setHistory(
+      _history.concat([{
         squares: squares,
         location: { col: (i % 3) + 1, row: Math.trunc(i / 3) + 1 },
       }]),
-      stepNumber: history.length,
-      xIsNext: !state.xIsNext
-    });
+    );
+    setStepNumber(_history.length);
+    setXIsNext(!xIsNext);
   };
 
-  const jumpTo = step => {
-    setState({
-      ...state,
-      stepNumber: step,
-      xIsNext: (step % 2) === 0,
-    });
+  const jumpTo = (step: number) => {
+    setStepNumber(step);
+    setXIsNext((step % 2) === 0)
   };
 
-  const history = state.isSort ? state.history.slice().reverse() : state.history;
-  const currentStepNumber = state.isSort ? history.length - 1 - state.stepNumber : state.stepNumber;
-  const current = history[currentStepNumber];
+  const _history = isSort ? history.slice().reverse() : history;
+  const currentStepNumber = isSort ? _history.length - 1 - stepNumber : stepNumber;
+  const current = _history[currentStepNumber];
   const winner = calculateWinner(current.squares);
 
   let status;
@@ -69,11 +60,11 @@ const Game = props => {
   } else if (current.squares.every(val => val === 'X' || val === 'O')) {
     status = 'This game is draw.';
   } else {
-    status = 'Next player: ' + (state.xIsNext ? 'X' : 'O');
+    status = 'Next player: ' + (xIsNext ? 'X' : 'O');
   };
 
-  const moves = history.map((step, move) => {
-    const moveIndex = state.isSort ? history.length - 1 - move : move;
+  const moves = _history.map((step, move) => {
+    const moveIndex = isSort ? history.length - 1 - move : move;
     const desc = moveIndex ?
       'Go to move #' + moveIndex + '(col: ' + step.location.col + ', row: ' + step.location.row + ')' :
       'GO to game start';
@@ -96,7 +87,7 @@ const Game = props => {
       <div className="game-info">
         <div>{status}</div>
         <div>
-          <button onClick={() => setState({ ...state, isSort: !state.isSort }) }>{ state.isSort ? '昇順' : '降順'}</button>
+          <button onClick={() => setIsSort(!isSort) }>{ isSort ? '昇順' : '降順'}</button>
         </div>
         <ol>{moves}</ol>
       </div>

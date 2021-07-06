@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import './game.css';
-import Board from '../board/board';
-import { ISquare, History } from '../../interface';
+import { Box, Grid } from '@material-ui/core';
+import { ISquare, History } from '../../../interface';
+import { GameBoard } from '../../molecules/game-board';
+import { GameInfo } from '../../molecules/game-info';
+import { Button } from '../../atoms/button';
 
 const calculateWinner = (squares: ISquare[]) => {
   const lines = [
@@ -21,7 +23,7 @@ const calculateWinner = (squares: ISquare[]) => {
   return null;
 };
 
-const Game = () => {
+export const Game = () => {
   const [history, setHistory] = useState<History[]>([{squares: Array(9).fill(null)}]);
   const [stepNumber, setStepNumber] = useState<number>(0);
   const [xIsNext, setXIsNext] = useState<boolean>(true);
@@ -69,30 +71,37 @@ const Game = () => {
       'Go to move #' + moveIndex + '(col: ' + step.location.col + ', row: ' + step.location.row + ')' :
       'GO to game start';
     return(
-      <li key={moveIndex}>
-        <button onClick={() => jumpTo(moveIndex)} className={ move === currentStepNumber ? 'text-bold' : null }>{desc}</button>
-      </li>
+      <Box key={moveIndex} display="flex">
+        <p>{moveIndex}</p>
+        <Box m={1} alignItems="center">
+          <Button onClick={() => jumpTo(moveIndex)} variant="outlined" color="inherit" value={desc}/>
+        </Box>
+      </Box>
     )
   });
 
   return (
-    <div className="game">
-      <div className="game-board">
-        <Board
-          squares={current.squares}
-          lines={winner ? winner.lines : null}
-          onClick={i => handleClick(i)}
-        />
-      </div>
-      <div className="game-info">
-        <div>{status}</div>
-        <div>
-          <button onClick={() => setIsSort(!isSort) }>{ isSort ? '昇順' : '降順'}</button>
-        </div>
-        <ol>{moves}</ol>
-      </div>
-    </div>
+    <Box p={2}>
+      <Grid container>
+        <Grid item xs={3}/>
+        <Grid item xs={6}>
+          <Box display="flex" justifyContent="center">
+            <GameBoard
+              squares={current.squares}
+              lines={winner ? winner.lines : null}
+              onClick={i => handleClick(i)}
+            />
+          </Box>
+        </Grid>
+        <Grid item xs={3}>
+          <GameInfo
+            status={status}
+            isSort={isSort}
+            moves={moves}
+            onClick={() => setIsSort(!isSort)}
+          />
+        </Grid>
+      </Grid>
+    </Box>
   );
 }
-
-export default Game;
